@@ -9,7 +9,6 @@ import org.springframework.context.annotation.Configuration;
 
 /**
  * Configuration of swagger
- * @author T010892
  *
  */
 @Configuration
