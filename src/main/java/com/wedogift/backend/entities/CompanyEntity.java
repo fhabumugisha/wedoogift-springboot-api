@@ -2,12 +2,7 @@ package com.wedogift.backend.entities;
 
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.apache.catalina.User;
-
+import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,6 +10,7 @@ import java.util.UUID;
 
 @Builder
 @Data
+@ToString
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
@@ -30,12 +26,17 @@ public class CompanyEntity {
     private List<UserEntity> users = new ArrayList<>();
 
     public void addUser(UserEntity userEntity) {
+        if(null == users){
+            users =  new ArrayList<>();
+        }
         users.add(userEntity);
         userEntity.setCompany(this);
     }
 
     public void removeUser(UserEntity userEntity) {
-        users.remove(userEntity);
+        if(null != users) {
+            users.remove(userEntity);
+        }
         userEntity.setCompany(null);
     }
 }

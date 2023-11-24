@@ -40,6 +40,9 @@ public class CompaniesServiceImpl implements  CompaniesService{
     public UUID addCompany(AddCompanyDto addCompanyDto) {
         //Todo validate user input
         CompanyEntity company =  companiesMapper.toEntity(addCompanyDto);
+       if(company.getUsers() != null){
+           company.getUsers().forEach(userEntity -> userEntity.setCompany(company));
+       }
         return companiesRepo.save(company).getId();
     }
 
@@ -86,7 +89,7 @@ public class CompaniesServiceImpl implements  CompaniesService{
             throw new NotEnoughBalanceException("Not enough balance for company with ID: " + companyId);
         }
         //Add deposit to user's deposits
-        user.getDeposits().add(
+        user.addDeposit(
                 DepositEntity.builder()
                         .balance(depositBalanceDto.balance())
                         .depositDate(depositBalanceDto.depositDate())
@@ -107,22 +110,27 @@ public class CompaniesServiceImpl implements  CompaniesService{
         UserEntity user = this.usersRepo.findByIdAndCompany(userId, company).orElseThrow(() -> new UserNotFoundException(NO_USER_WITH_THE_GIVEN_ID_FOUND));
         Double userBalance = 0D;
 
-        for(DepositEntity depositEntity : user.getDeposits()){
+        for (DepositEntity depositEntity : user.getDeposits()) {
             String depositType = depositEntity.getDepositType();
             LocalDate depositDate = depositEntity.getDepositDate();
-        if(EnumDepositType.GIFTS.name().equals(depositType)){
-            LocalDate giftExpireDate =  depositDate.plusDays(365);
-            if(!depositDate.isAfter(giftExpireDate)) {
-                userBalance += depositEntity.getBalance();
-            }
+            LocalDate today = LocalDate.now();
+            if (EnumDepositType.GIFTS.name().equals(depositType)) {
+                //Gift deposits has 365 days lifespan,
+                LocalDate giftExpireDate = depositDate.plusDays(365);
+                if (today.isEqual(giftExpireDate) || today.isBefore(giftExpireDate)) {
+                    userBalance += depositEntity.getBalance();
+                }
 
-        }else if(EnumDepositType.MEALS.name().equals(depositType)){
-            LocalDate mealExpireDate =  depositDate.plusYears(1).withMonth(2);
-            if(!depositDate.isAfter(mealExpireDate)) {
-                userBalance += depositEntity.getBalance();
+            } else if (EnumDepositType.MEALS.name().equals(depositType)) {
+                //meal deposits expires at the end of February of the year following the distribution date.
+                LocalDate mealExpireDate = depositDate.plusYears(1).withMonth(2);
+                if (today.isEqual(mealExpireDate) || today.isBefore(mealExpireDate)) {
+                    userBalance += depositEntity.getBalance();
+                }
             }
-        }
         }
         return GetBalanceDto.builder().balance(userBalance).build();
+
+
     }
 }

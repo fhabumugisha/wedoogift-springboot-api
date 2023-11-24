@@ -1,10 +1,7 @@
 package com.wedogift.backend.entities;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 
 import java.util.ArrayList;
@@ -13,6 +10,7 @@ import java.util.UUID;
 
 @Builder
 @Data
+@ToString
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
@@ -31,4 +29,19 @@ public class UserEntity {
     // List of deposits made by the user
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<DepositEntity> deposits = new ArrayList<>();
+
+    public void addDeposit(DepositEntity depositEntity) {
+        if(null == deposits){
+            deposits =  new ArrayList<>();
+        }
+        deposits.add(depositEntity);
+        depositEntity.setUser(this);
+    }
+
+    public void removeDeposit(DepositEntity depositEntity) {
+        if(null != deposits){
+            deposits.remove(depositEntity);
+        }
+        depositEntity.setUser(null);
+    }
 }

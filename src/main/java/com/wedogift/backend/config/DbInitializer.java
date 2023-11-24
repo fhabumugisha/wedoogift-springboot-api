@@ -7,8 +7,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-
 @Slf4j
 @Component
 public class DbInitializer implements CommandLineRunner {
@@ -27,11 +25,11 @@ public class DbInitializer implements CommandLineRunner {
         saveCompanyWithUser("Addidas", 150.0, "James");
         saveCompanyWithUser("Nike", 10.0, "Peter");
         companiesRepo.findAll().forEach(t -> {
-            log.info("{} Company : {} ", "[APILOG]", t);
+            log.info("{} Company : {} ", "[APILOG]", t.getName());
         });
     }
 
-    private void saveCompanyWithUser(String companyName, double balance, String userName) {
+    private void saveCompanyWithUser(String companyName, Double balance, String userName) {
         CompanyEntity company = CompanyEntity.builder()
                 .name(companyName)
                 .balance(balance)
