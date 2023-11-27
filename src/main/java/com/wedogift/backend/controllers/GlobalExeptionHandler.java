@@ -11,6 +11,8 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.util.ArrayList;
+
 @Slf4j
 @RestControllerAdvice()
 public class GlobalExeptionHandler {
@@ -33,10 +35,12 @@ public class GlobalExeptionHandler {
     @ExceptionHandler(ConstraintViolationException.class)
    public ResponseEntity<ValidationErrorResponse> onConstraintValidationException(
             ConstraintViolationException e) {
-        ValidationErrorResponse error = ValidationErrorResponse.builder().build();
+        ValidationErrorResponse error = ValidationErrorResponse.builder().violations(new ArrayList<>()).build();
         for (ConstraintViolation violation : e.getConstraintViolations()) {
             error.violations().add(
-                    new Violation(violation.getPropertyPath().toString(), violation.getMessage()));
+                    Violation.builder()
+                            .fieldName(violation.getPropertyPath().toString()).
+                            message( violation.getMessage()).build( ));
         }
         return ResponseEntity.badRequest().body(error);
     }
@@ -44,10 +48,10 @@ public class GlobalExeptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ValidationErrorResponse>  onMethodArgumentNotValidException(
             MethodArgumentNotValidException e) {
-        ValidationErrorResponse error =  ValidationErrorResponse.builder().build();
+        ValidationErrorResponse error =  ValidationErrorResponse.builder().violations(new ArrayList<>()).build();
         for (FieldError fieldError : e.getBindingResult().getFieldErrors()) {
             error.violations().add(
-                    new Violation(fieldError.getField(), fieldError.getDefaultMessage()));
+                    Violation.builder().fieldName(fieldError.getField()).message(fieldError.getDefaultMessage()).build( ));
         }
         return ResponseEntity.badRequest().body(error);
     }
